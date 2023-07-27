@@ -53,6 +53,10 @@ class FieldElement:
         # 1/n == pow(n, p-2, p)
         num = self.num * pow(other.num, self.prime - 2, self.prime) % self.prime
         return self.__class__(num, self.prime)
+    
+    def __rmul__(self, coefficient):
+        num = (self.num * coefficient) % self.prime
+        return self.__class__(num=num, prime=self.prime)
 
     
 class Point:
@@ -77,7 +81,7 @@ class Point:
         return self.x == other.x and self.y == other.y and self.a == other.a and self.b == other.b
     
     def __ne__(self, other):
-        return not __eq__(self, other)
+        return not (self == other)
     
     def __add__(self, other):
         if self.a != other.a or self.b != other.b:
@@ -112,6 +116,17 @@ class Point:
             y = s*(self.x - x) - self.y
 
             return self.__class__(x,y,self.a, self.b)
+        
+    def __rmul__(self, coefficient):
+        coef = coefficient
+        current = self  # <1>
+        result = self.__class__(None, None, self.a, self.b)  # <2>
+        while coef:
+            if coef & 1:  # <3>
+                result += current
+            current += current  # <4>
+            coef >>= 1  # <5>
+        return result
         
 class ECCTest(TestCase):
 
