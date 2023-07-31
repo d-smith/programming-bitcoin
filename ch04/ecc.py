@@ -1,5 +1,8 @@
 from io import BytesIO
 
+from helper import encode_base58_checksum, hash160
+
+
 from unittest import TestCase
 
 import hashlib
@@ -264,6 +267,18 @@ class S256Point(Point):
         else:
             return b'\x04' + self.x.num.to_bytes(32, 'big') + \
                 self.y.num.to_bytes(32, 'big')
+        
+    def hash160(self, compressed=True):
+        return hash160(self.sec(compressed))
+
+    def address(self, compressed=True, testnet=False):
+        '''Returns the address string'''
+        h160 = self.hash160(compressed)
+        if testnet:
+            prefix = b'\x6f'
+        else:
+            prefix = b'\x00'
+        return encode_base58_checksum(prefix + h160)
         
     @classmethod
     def parse(self, sec_bin):
