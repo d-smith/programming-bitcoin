@@ -52,3 +52,13 @@ def decode_base58(s):
     if hash256(combined[:-4])[:4] != checksum:
         raise ValueError('bad address: {} {}'.format(checksum, hash256(combined[:-4])[:4]))
     return combined[1:-4]
+
+def little_endian_to_int(b):
+    '''little_endian_to_int takes byte sequence as a little-endian number.
+    Returns an integer'''
+    return int.from_bytes(b, 'little')
+
+def int_to_little_endian(n, length):
+    '''endian_to_little_endian takes an integer and returns the little-endian
+    byte sequence of length'''
+    return n.to_bytes(length, 'little')
