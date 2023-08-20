@@ -75,4 +75,33 @@ class TxIn:
         script_sig = Script.parse(s)
         sequence = little_endian_to_int(s.read(4))
         return cls(prev_tx, prev_index, script_sig, sequence)
+    
+class TxOut:
+
+    def __init__(self, amount, script_pubkey):
+        self.amount = amount
+        self.script_pubkey = script_pubkey
+
+    def __repr__(self):
+        return '{}:{}'.format(self.amount, self.script_pubkey)
+    # end::source3[]
+
+    @classmethod
+    def parse(cls, s):
+        '''Takes a byte stream and parses the tx_output at the start
+        return a TxOut object
+        '''
+        # amount is an integer in 8 bytes, little endian
+        # use Script.parse to get the ScriptPubKey
+        # return an instance of the class (see __init__ for args)
+        amount = little_endian_to_int(s.read(8))
+        script_pubkey = Script.parse(s)
+        return cls(amount, script_pubkey)
+
+    # tag::source4[]
+    def serialize(self):  # <1>
+        '''Returns the byte serialization of the transaction output'''
+        result = int_to_little_endian(self.amount, 8)
+        result += self.script_pubkey.serialize()
+        return result
         
