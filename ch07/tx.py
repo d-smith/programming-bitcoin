@@ -157,6 +157,9 @@ class Tx:
         return input_sum - output_sum
     # end::source1[]
 
+    
+        
+
     def sig_hash(self, input_index):
         '''Returns the integer representation of the hash that needs to get
         signed for index input_index'''
@@ -174,8 +177,31 @@ class Tx:
         # add SIGHASH_ALL using int_to_little_endian in 4 bytes
         # hash256 the serialization
         # convert the result to an integer using int.from_bytes(x, 'big')
-        raise NotImplementedError
+        s = int_to_little_endian(self.version, 4)
+        s += encode_varint(len(self.tx_ins))
+        for i, tx_in in enumerate(self.tx_ins):
+            if i == input_index:
+                s += TxIn(
+                    prev_tx=tx_in.prev_tx,
+                    prev_index=tx_in.prev_index,
+                    script_sig=tx_in.script_pubkey(self.testnet),
+                    sequence=tx_in.sequence,
+                ).serialize()
+            else:
+                s += TxIn(
+                    prev_tx=tx_in.prev_tx,
+                    prev_index=tx_in.prev_index,
+                    sequence=tx_in.sequence,
+                ).serialize()
+        s += encode_varint(len(self.tx_outs))
+        for tx_out in self.tx_outs:
+            s += tx_out.serialize()
+        s += int_to_little_endian(self.locktime, 4)
+        s += int_to_little_endian(SIGHASH_ALL, 4)
+        h256 = hash256(s)
+        return int.from_bytes(h256, 'big')
 
+    
     def verify_input(self, input_index):
         '''Returns whether the input has a valid signature'''
         # get the relevant input
@@ -183,7 +209,11 @@ class Tx:
         # get the signature hash (z)
         # combine the current ScriptSig and the previous ScriptPubKey
         # evaluate the combined script
-        raise NotImplementedError
+        tx_in = self.tx_ins[input_index]
+        script_pubkey = tx_in.script_pubkey(testnet=self.testnet)
+        z = self.sig_hash(input_index)
+        combined = tx_in.script_sig + script_pubkey
+        return combined.evaluate(z)
 
     # tag::source2[]
     def verify(self):
