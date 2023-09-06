@@ -22,7 +22,9 @@ class TxFetcher:
     @classmethod
     def get_url(cls, testnet=False):
         if testnet:
-            return 'https://blockstream.info/testnet/api'
+#            return 'https://blockstream.info/testnet/api'
+# Use local ngiri testnet
+            return "http://localhost:3000"
         else:
             return 'https://blockstream.info/api'
 
